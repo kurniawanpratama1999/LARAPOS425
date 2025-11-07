@@ -87,46 +87,19 @@
         </div>
     </aside>
     <main
-        class="relative top-12 left-80 w-[calc(100dvw-20rem)] h-[200dvh] overflow-auto p-3 max-[1000px]:w-full max-[1000px]:left-0">
+        class="fixed top-12 left-80 w-[calc(100dvw-20rem)] h-[calc(100dvh-3rem)] overflow-auto max-[1000px]:w-full max-[1000px]:left-0">
         @yield('content')
 
         <div id="btn-group-control" class="fixed bottom-5 right-5 flex flex-col gap-2">
             @yield('btn-group')
 
             <button id="btn-gotop" onclick="btnGoTop()" type="button"
-                class="block disabled:hidden size-10 rounded-full outline bg-neutral-500 text-white shadow">
+                class="block disabled:hidden size-12 rounded-full outline bg-neutral-500/20 hover:bg-neutral-500 text-white shadow">
                 <i class="bi bi-caret-up-fill"></i>
             </button>
         </div>
     </main>
-    <script>
-        function toggleMenu() {
-            const asideEl = document.querySelector('aside')
-            asideEl.classList.toggle('max-[1000px]:-left-80')
-        }
-
-        function btnGoTop() {
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            })
-        }
-
-        const btnGoTopEl = document.getElementById('btn-gotop')
-
-        if (window.screenY < 50) {
-            btnGoTopEl.disabled = true
-        }
-
-        window.addEventListener('scroll', (e) => {
-            const scrollPos = window.scrollY
-            if (scrollPos < 50) {
-                btnGoTopEl.disabled = true
-            } else {
-                btnGoTopEl.disabled = false
-            }
-        })
-    </script>
+    <script type="module" src="{{ Vite::asset('resources/js/bladeDashboard.js') }}"></script>
     @stack('scripts')
 </body>
 
