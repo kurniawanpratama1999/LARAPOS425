@@ -1,7 +1,8 @@
 @extends('layouts.dashboard')
 @section('title', 'Users | Larapos 425')
 @section('content')
-    <div class="w-full overflow-auto">
+
+<div class="w-full overflow-auto">
         <table class="w-fit">
             <thead class="border-b border-slate-300">
                 <tr class="[&>th]:px-3 [&>th]:pb-2 [&>th]:text-left">
@@ -13,29 +14,15 @@
                     <th>Created at</th>
                 </tr>
             </thead>
-            <tbody>
-                @for ($i = 1; $i <= 10; $i++)
-                    <tr id="row-data-{{ $i }}"
-                        class="relative [&>td]:px-3 [&>td]:text-nowrap [&>td]:py-2 border-b border-slate-300 hover:bg-slate-100 has-checked:bg-amber-100">
-                        <td id="check-{{ $i }}">
-                            <label for="check-{{ $i }}">
-                                <input type="checkbox" name="check-{{ $i }}" id="check-{{ $i }}">
-                            </label>
-                        </td>
-                        <td id="name-{{ $i }}">{{ Faker\Factory::create()->name }}</td>
-                        <td id="role-{{ $i }}">{{ Faker\Factory::create()->jobTitle }}</td>
-                        <td id="email-{{ $i }}">{{ Faker\Factory::create()->email }}</td>
-                        <td id="status-{{ $i }}">{{ Faker\Factory::create()->randomDigit }}</td>
-                        <td id="created-{{ $i }}">{{ Faker\Factory::create()->date('y-m-d h:m:s') }}</td>
-                    </tr>
-                @endfor
+            <tbody id="table-data">
+                <x-apis.user-table-data :users="$users"/>
             </tbody>
         </table>
     </div>
 @endsection
 
 @section('btn-group')
-    <button id="btn-add" onclick="btnGoTop()" type="button"
+    <button id="btn-add" onclick="btnAdd()" type="button"
         class="block size-10 rounded-full outline bg-emerald-500 text-white shadow">
         <i class="bi bi-plus"></i>
     </button>
@@ -47,7 +34,46 @@
 
 @pushOnce('scripts')
     <script>
-        function verifyEditType() {
+        const btnDelete = async () => {
+            const trueChecks = []
+            const checksEl = document.querySelectorAll('input[type=checkbox]')
+
+            for (const checkEl of checksEl) {
+                if (checkEl.checked) {
+                    const [_, id] = checkEl.id.split('-')
+                    trueChecks.push(parseInt(id))
+                }
+            }
+
+            const ids = trueChecks.map(id => `id[]=${id}`).join('&')
+
+            const response = await fetch(`users/get-delete?${ids}`, {
+                method: "GET",
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            const result = await response.json()
+            const element = result.html
+
+            document.body.insertAdjacentHTML('afterbegin', element)
+            verifyDeleteType()
+        };
+
+        const btnAdd = async () => {
+            const response = await fetch("/dashboard/users/add", {
+                method: "GET",
+                headers: {"Content-type": "application/json"}
+            })
+
+            const result = await response.json();
+            const element = result.html;
+            document.body.insertAdjacentHTML('afterbegin', element)
+
+            formStoreUser()
+        };
+
+        const verifyEditType = () => {
             const verifyEl = document.querySelector("input[name='verify']")
             if (verifyEl) {
                 verifyEl.addEventListener('keyup', () => {
@@ -65,7 +91,7 @@
             }
         }
 
-        function verifyDeleteType() {
+        const verifyDeleteType = () => {
             const verifyEl = document.querySelector("input[name='verify']")
             if (verifyEl) {
                 verifyEl.addEventListener('keyup', () => {
@@ -83,11 +109,21 @@
             }
         }
 
-        const dataTablesEl = document.querySelectorAll('tr[id^=row-data-]')
+        const toggleDeleteSelectedData = () => {
+            const checksEl = document.querySelectorAll('input[type=checkbox]')
+            const btnDelete = document.getElementById('btn-delete')
 
-        const btnDataTable = ({
-            target
-        }) => {
+            for (const checkEl of checksEl) {
+                if (checkEl.checked) {
+                    btnDelete.disabled = false;
+                    return;
+                } else {
+                    btnDelete.disabled = true;
+                }
+            }
+        }
+
+        const handleClickRow = ({target}) => {
             const checkbox = target.querySelector('input[type=checkbox]');
             const isChecked = checkbox.checked
 
@@ -95,10 +131,8 @@
             toggleDeleteSelectedData()
         }
 
-        const btnDblDataTable = async ({
-            target
-        }) => {
-
+        const handleDblClickRow = async ({target}) => {
+            const dataTablesEl = document.querySelectorAll('tr[id^=row-data-]')
             const [_, __, id] = target.id.split('-')
             const response = await fetch(`users/get-edit?id=${id}`, {
                 method: "GET",
@@ -113,52 +147,87 @@
             verifyEditType()
         }
 
-        for (const dataTableEl of dataTablesEl) {
-            dataTableEl.addEventListener('click', btnDataTable)
-            dataTableEl.addEventListener('dblclick', btnDblDataTable)
-        }
-
-
-        function toggleDeleteSelectedData() {
-            const checksEl = document.querySelectorAll('input[type=checkbox]')
-            const btnDelete = document.getElementById('btn-delete')
-
-            for (const checkEl of checksEl) {
-                if (checkEl.checked) {
-                    btnDelete.disabled = false;
-                    return;
-                } else {
-                    btnDelete.disabled = true;
-                }
+        const activedHandleClickForRow = () => {
+            const dataTablesEl = document.querySelectorAll('tr[id^=row-data-]')
+            for (const dataTableEl of dataTablesEl) {
+                dataTableEl.addEventListener('click', handleClickRow)
+                dataTableEl.addEventListener('dblclick', handleDblClickRow)
             }
         }
 
-        toggleDeleteSelectedData()
+        const handleSearchData = () => {
+            const searchEl = document.querySelector('input[name=search]')
 
-        async function btnDelete() {
-            const trueChecks = []
-            const checksEl = document.querySelectorAll('input[type=checkbox]')
+            let debounceSearch = null;
+            searchEl.addEventListener('keyup', () => {
 
-            for (const checkEl of checksEl) {
-                if (checkEl.checked) {
-                    const [_, id] = checkEl.id.split('-')
-                    trueChecks.push(parseInt(id))
+                if (debounceSearch) {
+                    clearTimeout(debounceSearch)
                 }
-            }
 
-            const ids = trueChecks.map(id => `id[]=${id}`).join('&')
+                debounceSearch = setTimeout(async() => {
+                    const q = searchEl.value;
+                        const url = q ? `/dashboard/users/search?q=${q}` : `/dashboard/users/search`;
+                        const response = await fetch(url, {
+                            method: "GET",
+                            headers: {"Content-type": "application/json"}
+                        })
 
-            const response = await fetch(`users/get-delete?id=${ids}`, {
-                method: "GET",
-                headers: {
-                    'Content-Type': 'application/json'
-                }
+                        const result = await response.json();
+
+                        const element = result.html;
+
+                        document.getElementById('table-data').innerHTML = element;
+
+                        activedHandleClickForRow()
+                    }, 400)
             })
-            const result = await response.json()
-            const element = result.html
-
-            document.body.insertAdjacentHTML('afterbegin', element)
-            verifyDeleteType()
         }
+
+        const autoDeleteMessage = () => {
+            const messageEl = document.getElementById('message')
+
+            if (messageEl) {
+                setTimeout(() => {
+                    messageEl.remove()
+                }, 2000)
+            }
+        }
+
+        const formStoreUser = () => {
+            const userstoreEl = document.getElementById('users-store');
+
+            userstoreEl.addEventListener('submit',async (e)=> {
+                e.preventDefault();
+                const form = e.target;
+                const formData = new FormData(form);
+
+                try {
+                    const res = await fetch("{{ route('users.store') }}", {
+                        method: 'POST',
+                        headers: {"X-CSRF-TOKEN":"{{ csrf_token() }}"},
+                        body: formData,
+                    })
+
+                    const data = await res.json();
+
+                    userstoreEl.insertAdjacentHTML('afterbegin', data.html);
+                    return;
+                } catch (error) {
+                    userstoreEl.insertAdjacentHTML('afterbegin', `<x-apis.Message :success="false" message="error"/>`);
+                } finally {
+                    autoDeleteMessage();
+                }
+
+            })
+        }
+
+        const run = () => {
+                activedHandleClickForRow();
+                handleSearchData();
+                toggleDeleteSelectedData();
+        }
+
+        document.addEventListener('DOMContentLoaded', run);
     </script>
 @endPushOnce

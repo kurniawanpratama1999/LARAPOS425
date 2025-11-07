@@ -7,11 +7,12 @@
                 Kamu sedang melakukan delete user, pastikan data dibawah adalah yang ingin dihapus.
             </p>
         </div>
-        <form action="" method="" class="mt-5 grid grid-cols-2 gap-5">
+        <form action="{{ route('users.destroys') }}" method="POST" class="mt-5 grid grid-cols-2 gap-5">
             @csrf
             @method('DELETE')
 
             <div class="relative col-span-2 w-full max-h-[30vh] overflow-auto">
+                <table>
                 <thead class="sticky top-0 bg-neutral-100 border-b border-slate-300">
                     <tr class="[&>th]:px-3 [&>th]:pb-2 [&>th]:text-left">
                         <th>Name</th>
@@ -23,7 +24,7 @@
                     @foreach ($userDelete as $user)
                         <tr class="[&>td]:px-3 [&>td]:text-nowrap [&>td]:py-2 border-b border-slate-300">
                             <td>{{ $user['name'] }}</td>
-                            <td>{{ $user['role_name'] }}</td>
+                            <td>{{ $user['role_id'] }}</td>
                             <td>{{ $user['email'] }}</td>
                         </tr>
                     @endforeach
