@@ -1,7 +1,13 @@
+const theadFormTableDatas = document.querySelector('table#datas thead')
 const mainEl = document.querySelector('main')
 const btnGoTopEl = document.getElementById('btn-gotop')
 
-function btnGoTop() {
+const toggleMenu = () => {
+    const asideEl = document.querySelector('aside')
+    asideEl.classList.toggle('max-[1000px]:left-0!')
+}
+
+const btnGoTop = () => {
     mainEl.scrollTo({
         top: 0,
         behavior: 'smooth'
@@ -22,10 +28,12 @@ const toggleBtnGoTop = () => {
             btnGoTopEl.disabled = false
         }
 
-        if (scrollY < 3) {
-            theadFormTableDatas.classList.remove('shadow')
-        } else {
-            theadFormTableDatas.classList.add('shadow')
+        if (theadFormTableDatas) {
+            if (scrollY < 3) {
+                theadFormTableDatas.classList.remove('shadow')
+            } else {
+                theadFormTableDatas.classList.add('shadow')
+            }
         }
     })
 }

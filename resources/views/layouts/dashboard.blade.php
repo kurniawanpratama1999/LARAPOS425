@@ -4,6 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>@yield('title', 'LARAPOS425')</title>
 
@@ -11,6 +12,22 @@
 </head>
 
 <body class="h-full">
+
+    @php
+        $currentUrl = request()->path();
+        $isCurrentUrlContainCreate = str_contains($currentUrl, 'create');
+        $isCurrentUrlContainUpdate = str_contains($currentUrl, 'edit');
+        $isContain = $isCurrentUrlContainCreate || $isCurrentUrlContainUpdate;
+        $previousUrl = url()->previous(true);
+
+        $floatingAlert = session('floatingAlert');
+    @endphp
+
+    @if ($floatingAlert)
+        <x-floationg-alert :title="$floatingAlert['title']" :type="$floatingAlert['type']">
+            {{ $floatingAlert['message'] }}
+        </x-floationg-alert>
+    @endif
 
     <header
         class="bg-neutral-200 z-49 fixed top-0 left-80 w-[calc(100dvw-20rem)] h-12 border-b border-slate-300 flex flex-row gap-3 items-center px-3 max-[1000px]:left-0 max-[1000px]:w-full">
@@ -20,12 +37,20 @@
             class="hidden max-[1000px]:block cursor-pointer text-xl">
             <i class="bi bi-list"></i>
         </button>
-        <label for="search"
-            class="px-3 max-[1000px]:ml-auto w-full max-w-sm border rounded-full border-slate-400 flex flex-row items-center justify-center">
-            <i class="bi bi-search"></i>
-            <input type="text" name="search" id="search" placeholder="search"
-                class="border-0 outline-0 py-1 px-3 w-full">
-        </label>
+
+        @if ($isContain)
+            <a href="{{ $previousUrl }}" class="text-neutral-700 max-[1000px]:ml-auto">
+                <i class="bi bi-chevron-left"></i>
+                <span>Back</span>
+            </a>
+        @else
+            <label for="search"
+                class="px-3 max-[1000px]:ml-auto w-full max-w-sm border rounded-full border-slate-400 flex flex-row items-center justify-center">
+                <i class="bi bi-search"></i>
+                <input type="text" name="search" id="search" placeholder="search"
+                    class="border-0 outline-0 py-1 px-3 w-full">
+            </label>
+        @endif
     </header>
 
     <aside
@@ -37,40 +62,23 @@
             <div class="flex flex-col gap-2">
                 <h2 class="font-bold text-indigo-400 text-xl">Transaction</h2>
                 <div class="flex flex-col pl-2 gap-2">
-                    <a href="#" class="flex flex-row gap-1 items-center">
-                        <i class="bi bi-journal-plus"></i>
-                        <span>Create Order</span>
-                    </a>
-                    <a href="#" class="flex flex-row gap-1 items-center">
-                        <i class="bi bi-journal"></i>
-                        <span>View Orders</span>
-                    </a>
-                    <a href="#" class="flex flex-row gap-1 items-center">
-                        <i class="bi bi-journal-text"></i>
-                        <span>Logging</span>
-                    </a>
+                    <x-current-url :links="[
+                        ['#', 'Create Order', 'bi-journal-plus'],
+                        ['#', 'View Order', 'bi-journal'],
+                        ['#', 'Logging', 'bi-journal-text'],
+                    ]" />
                 </div>
             </div>
 
             <div class="flex flex-col gap-2">
                 <h2 class="font-bold text-indigo-400 text-xl">Master Data</h2>
                 <div class="flex flex-col pl-2 gap-2">
-                    <a href="#" class="flex flex-row gap-1 items-center">
-                        <i class="bi bi-people"></i>
-                        <span>User Collection</span>
-                    </a>
-                    <a href="#" class="flex flex-row gap-1 items-center">
-                        <i class="bi bi-person-up"></i>
-                        <span>User Roles</span>
-                    </a>
-                    <a href="#" class="flex flex-row gap-1 items-center">
-                        <i class="bi bi-shop"></i>
-                        <span>Product Collection</span>
-                    </a>
-                    <a href="#" class="flex flex-row gap-1 items-center">
-                        <i class="bi bi-basket"></i>
-                        <span>Product Categories</span>
-                    </a>
+                    <x-current-url :links="[
+                        ['/dashboard/users', 'Users Collection', 'bi-people'],
+                        ['/dashboard/roles', 'User Roles', 'bi-person-up'],
+                        ['/dashboard/products', 'Products Collection', 'bi-shop'],
+                        ['/dashboard/categories', 'Product Categories', 'bi-basket'],
+                    ]" />
                 </div>
             </div>
         </nav>
@@ -93,13 +101,12 @@
         <div id="btn-group-control" class="fixed bottom-5 right-5 flex flex-col gap-2">
             @yield('btn-group')
 
-            <button id="btn-gotop" onclick="btnGoTop()" type="button"
-                class="block disabled:hidden size-12 rounded-full outline bg-neutral-500/20 hover:bg-neutral-500 text-white shadow">
+            <x-floating-button id="btn-gotop" onclick="btnGoTop()" type="button" disabled>
                 <i class="bi bi-caret-up-fill"></i>
-            </button>
+            </x-floating-button>
         </div>
     </main>
-    <script type="module" src="{{ Vite::asset('resources/js/bladeDashboard.js') }}"></script>
+    <script src="{{ Vite::asset('resources/js/bladeDashboard.js') }}"></script>
     @stack('scripts')
 </body>
 

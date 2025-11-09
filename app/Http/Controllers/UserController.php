@@ -1,26 +1,113 @@
 <?php
 namespace App\Http\Controllers;
 
+use App\Models\Role;
 use App\Models\User;
-use phpDocumentor\Reflection\Types\Integer;
-use Request;
+use Hash;
+use Illuminate\Http\Request;
 
 class UserController extends Controller {
     public function index() {
-        $datas = User::all()->makeHidden('password');
-
+        $datas = User::with('roles')->get();
         return view('pages.users.index', compact('datas'));
     }
     public function create() {
         
-        return view('pages.users.create');
+        $roles = Role::all();
+        return view('pages.users.create', compact('roles'));
     }
-    public function edit($id) {
+    public function edit(string $id) {
+        $datas = User::with('roles')->find($id)->get();
+        $roles = Role::all();
+        return view('pages.users.create', compact('datas', 'roles'));
+    }
+    public function search (Request $request) {
+        $q = request()->query('q');
+
+        $datas = User::with('role')->makeHidden('password');
+        if ( $q != '')  { 
+
+            $datas->where(function ($query) use ($q) {
+                $query
+                ->where('name','like','%'. $q .'%')
+                ->orWhere('email','like','%'. $q .'%')
+                ->orWhere('role_id','like','%'. $q .'%')
+                ->orWhere('created_at','like','%'. $q .'%');
+            });
+        }
+
+    $datas = $datas->get();
+
+        $html = view('partials.UsersTableBody', compact('datas', 'q'))->render();
+
+        return response()->json(['html' => $html]);
+    }
+    public function store (Request $request) {
+        $validate = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'role_id' => 'required|integer|exists:roles,id',
+            'password' => 'required|string|min:8',
+            'confirm-password' => 'same:password',
+        ]);
         
-        return view('pages.users.edit', compact('id'));
+        try {
+            User::create([
+                'name' => $validate['name'],
+                'email' => $validate['email'],
+                'photo_profile' => null,
+                'role_id' => $validate['role_id'],
+                'password' => Hash::make($validate['password']),
+            ]);
+                
+            return redirect()->route('users.index')
+                ->with('floatingAlert', [
+                    'title' => 'Success', 
+                    'type' => 'success', 
+                    'message' => 'Berhasil menambah user baru'
+                ]);
+        } catch (\Throwable $err) {
+            return redirect()->back()->withInput($request->except('password'))->with('floatingAlert', ['title' => 'Failed', 'type' => 'error', 'message' => 'Gagal menambah user baru']);
+        }
     }
-    public function search (Request $request) {}
-    public function store (Request $request) {}
-    public function update (Request $request) {}
-    public function destroys (Request $request) {}
+    public function update (Request $request, string $id) {
+
+        try {
+            $data = $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|unique:users,email',
+                'role_id' => 'required|integer',
+                'status' => 'required|integer',
+                'password' => 'nullable|string|min:8|confirmed',
+            ]);
+            
+            if(!empty($data['[password'])) {
+                $data['password'] = Hash::make($data['password']);
+            } else {
+                unset($data['password']);
+            }
+
+            User::where('id',$id)->update($data);
+                
+            return redirect()->route('users.index')
+                ->with('floatingAlert', [
+                    'title' => 'Update User Success', 
+                    'type' => 'success', 
+                    'message' => ""
+                ]);
+        } catch (\Throwable $err) {
+            return redirect()->back()->withInput($request->except('password'))->with('floatingAlert', ['title' => 'Gagal Update User', 'type' => 'error', 'message' => ""]);
+        }
+    }
+    public function destroys (Request $request) {
+        try {
+            $ids = $request->query('id');
+            User::destroy( $ids );
+            $count = count($ids);
+            return redirect()->route('users.index')
+                ->with('floatingAlert', ['title' => "Berhasil Hapus $count User", 'type' => 'success', 'message' => ""]);
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('floatingAlert', ['title' => 'Gagal Hapus User', 'type' => 'error', 'message' => ""]);
+        }
+    }
 }

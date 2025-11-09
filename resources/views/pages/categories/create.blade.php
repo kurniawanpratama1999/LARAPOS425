@@ -1,17 +1,15 @@
 @extends('layouts.dashboard')
-@section('title', 'Users | Larapos 425')
+@section('title', 'Categories | Larapos 425')
 @section('content')
     <div class="flex flex-col items-center p-3">
         <div class="max-w-lg">
             @if (isset($datas))
                 <x-alert title="information" type="info">
-                    Isi password untuk mengubah password lama menjadi password baru, artinya jangan isi password kalau tidak
-                    mau ada perubahan pada password.
+                    Pastikan kamu mengeditnya dengan data category name yang belum ada.
                 </x-alert>
             @else
                 <x-alert title="information" type="info">
-                    Pastikan kamu mengisi datanya dengan benar, <b>nama</b> harus <b>sesuai KTP</b>, <b>email pribadi</b>
-                    harus <b>terdaftar</b>, dan <b>password</b> haruslah <b>aman</b> dan <b>mudah di ingat</b>.
+                    Category name haruslah unik, jadi pastikan kamu membuat nama yang memang belum ada.
                 </x-alert>
             @endif
 
@@ -20,7 +18,7 @@
                     @if (isset($datas))
                         Update For {{ $datas->name }}
                     @else
-                        Create New User
+                        Create New Category
                     @endif
                 </h2>
 
@@ -29,35 +27,19 @@
                         Data ini akan diperbaharui oleh administrator. Pastikan diperbaharui dengan
                         benar.
                     @else
-                        Data ini akan ditampilkan oleh si pengguna dan administrator.
+                        Data ini digunakan sebagai relasi untuk si Products.
                     @endif
                 </p>
             </div>
 
-            <form action="{{ !isset($datas) ? route('users.store') : route('users.update', $datas->id) }}" method="post"
-                class="p-2 w-full max-w-lg space-y-5">
+            <form action="{{ !isset($datas) ? route('categories.store') : route('categories.update', $datas->id) }}"
+                method="post" class="p-2 w-full max-w-lg space-y-5">
                 @csrf
                 @if (isset($datas))
                     @method('PUT')
                 @endif
 
-                <x-form.input required label="Full name" id="name" type="text" :model="$datas ?? null" autofocus />
-
-                <x-form.select required label="Role name" id="role_id" :datas="$roles" :value="$datas?->role_id ?? ''" />
-
-                <x-form.input required label="Email Address" id="email" type="email" :model="$datas ?? null" />
-
-                @if (isset($datas))
-                    <x-form.select required label="Status" id="status" :datas="[
-                        '1' => 'Active',
-                        '2' => 'Non Active',
-                    ]" :value="$datas?->status ?? ''" />
-                @endif
-
-                <x-form.input required="{{ isset($datas) ? 0 : 1 }}"
-                    label="{{ isset($datas) ? 'New Password' : 'Password' }}" id="password" type="password" />
-                <x-form.input required="{{ isset($datas) ? 0 : 1 }}" label="Confirm password" id="password_confirmation"
-                    type="password" />
+                <x-form.input required label="Category Name" id="name" type="text" :model="$datas ?? null" autofocus />
 
                 <div class="flex flex-row gap-4 justify-end">
                     <button type="reset" class="font-bold w-20">Reset</button>
