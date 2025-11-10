@@ -30,7 +30,7 @@
                         </div>
                     </td>
                     <td class="pl-0!">{{ $user->name }}</td>
-                    <td>{{ $user->role->name }}</td>
+                    <td>{{ $user->role->name}}</td>
                     <td>{{ $user->email }}</td>
                     <td>
                         @if ($user->status == 1)

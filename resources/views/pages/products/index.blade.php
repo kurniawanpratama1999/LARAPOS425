@@ -24,14 +24,15 @@
                     <td>
                         <div
                             class="size-9 outline-2 outline-neutral-400 rounded-full bg-slate-500 flex items-center justify-center overflow-hidden">
-                            @if ($product->photo_profile)
-                                <img src="/storage/{{ $product->photo_profile }}" alt="{{ $product->name }}">
+                            @if ($product->photo_product)
+                                <img src="/storage/{{ $product->photo_product }}" alt="{{ $product->name }}">
                             @else
                                 <i class="bi bi-person-fill text-2xl text-slate-50 mb-1"></i>
                             @endif
                         </div>
                     </td>
                     <td class="pl-0!">{{ $product->name }}</td>
+                    <td class="pl-0!">{{ $product->categories->name }}</td>
                     <td>{{ $product->description }}</td>
                     <td>{{ $product->price }}</td>
                     <td>{{ $product->quantity }}</td>
@@ -52,7 +53,7 @@
 @endsection
 
 @section('btn-group')
-    <x-floating-button href="{{ route('product.create') }}" id="btn-add" color="green">
+    <x-floating-button href="{{ route('products.create') }}" id="btn-add" color="green">
         <i class="bi bi-plus text-2xl"></i>
     </x-floating-button>
 

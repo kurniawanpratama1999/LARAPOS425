@@ -48,10 +48,10 @@
                 <x-form.input required label="Email Address" id="email" type="email" :model="$datas ?? null" />
 
                 @if (isset($datas))
-                    <x-form.select required label="Status" id="status" :datas="[
-                        '1' => 'Active',
-                        '2' => 'Non Active',
-                    ]" :value="$datas?->status ?? ''" />
+                    <x-form.select required label="Status" id="status" :datas="collect([
+                        (object)['id' => 1, 'name' => 'Active'],
+                        (object)['id' => 0, 'name' => 'Non Active'],
+                    ])" :value="$datas?->status ?? ''"/>
                 @endif
 
                 <x-form.input required="{{ isset($datas) ? 0 : 1 }}"
