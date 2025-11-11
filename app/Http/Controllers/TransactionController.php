@@ -2,18 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Categories;
 use App\Models\Order;
 use App\Models\OrderDetail;
 use App\Models\Product;
-use DB;
-use Hash;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class TransactionController extends Controller
 {
     public function index()
-    {   
+    {
         $datas = Order::with('orderDetails.product.categories' )->get();
         return view('pages.transactions.index', compact('datas',));
     }
@@ -23,9 +21,7 @@ class TransactionController extends Controller
         $product = Product::with('categories')->get();
         return view('pages.transactions.create', compact('product'));
     }
-    // public function edit(string $id)
-    // {
-    // }
+
     public function search(Request $request)
     {
         $q = request()->query('q');
@@ -130,13 +126,4 @@ class TransactionController extends Controller
             ], 500);
         }
     }
-    // public function update(Request $request, string $id)
-    // {
-
-    // }
-
-    // public function destroys(Request $request)
-    // {
-        
-    // }
 }
