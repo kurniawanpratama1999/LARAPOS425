@@ -18,7 +18,7 @@ class UserController extends Controller
     {
 
         $roles = Role::all();
-        return view('pages.users.create', compact('role'));
+        return view('pages.users.create', compact('roles'));
     }
     public function edit(string $id)
     {

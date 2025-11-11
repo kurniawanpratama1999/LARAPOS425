@@ -40,7 +40,7 @@ class CategoriesController extends Controller {
     }
     public function store (Request $request) {
         $validate = $request->validate([
-            'name' => 'required|string|unique:Categories,name|max:255',
+            'name' => 'required|string|unique:categories,name|max:255',
         ]);
         
         try {
@@ -62,7 +62,7 @@ class CategoriesController extends Controller {
 
         try {
             $data = $request->validate([
-                'name' => 'required|string|unique:Categories,name|max:255',
+                'name' => 'required|string|unique:categories,name|max:255',
             ]);
 
             Categories::where('id',$id)->update($data);

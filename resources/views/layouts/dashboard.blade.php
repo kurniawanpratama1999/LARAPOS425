@@ -63,9 +63,9 @@
                 <h2 class="font-bold text-indigo-400 text-xl">Transaction</h2>
                 <div class="flex flex-col pl-2 gap-2">
                     <x-current-url :links="[
-                        ['#', 'Create Order', 'bi-journal-plus'],
-                        ['#', 'View Order', 'bi-journal'],
-                        ['#', 'Logging', 'bi-journal-text'],
+                        ['/dashboard/order', 'Create Order', 'bi-journal-plus'],
+                        ['/dashboard/order-details', 'Order Details', 'bi-journal'],
+                        ['/dashboard/logging', 'Logging', 'bi-journal-text'],
                     ]" />
                 </div>
             </div>
@@ -73,12 +73,18 @@
             <div class="flex flex-col gap-2">
                 <h2 class="font-bold text-indigo-400 text-xl">Master Data</h2>
                 <div class="flex flex-col pl-2 gap-2">
-                    <x-current-url :links="[
-                        ['/dashboard/users', 'Users Collection', 'bi-people'],
-                        ['/dashboard/roles', 'User Roles', 'bi-person-up'],
-                        ['/dashboard/products', 'Products Collection', 'bi-shop'],
-                        ['/dashboard/categories', 'Product Categories', 'bi-basket'],
-                    ]" />
+                    @php
+                        $arrLink = [
+                            ['/dashboard/roles', 'User Roles', 'bi-person-up'],
+                            ['/dashboard/categories', 'Product Categories', 'bi-basket'],
+                            ['/dashboard/users', 'Users Collection', 'bi-people'],
+                        ];
+
+                        if (\App\Models\Categories::count() > 0) {
+                            $arrLink[] = ['/dashboard/products', 'Products Collection', 'bi-shop'];
+                        }
+                    @endphp
+                    <x-current-url :links="$arrLink" />
                 </div>
             </div>
         </nav>

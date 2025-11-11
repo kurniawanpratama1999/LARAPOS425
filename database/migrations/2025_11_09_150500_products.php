@@ -25,7 +25,7 @@ return new class extends Migration
             $table->text('photo_product')->nullable();
             $table->integer('price');
             $table->integer('quantity')->default(0);
-            $table->integer('status')->default(1);
+            $table->boolean('status')->default(1);
             $table->timestamps();
         });
     }
@@ -35,6 +35,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('categories');
+        Schema::dropIfExists('products');
     }
 };

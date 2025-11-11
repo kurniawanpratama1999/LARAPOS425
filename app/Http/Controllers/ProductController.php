@@ -16,9 +16,8 @@ class ProductController extends Controller
     }
     public function create()
     {
-
         $categories = Categories::all();
-        return view('pages.products.create', compact('categories'));
+        return view('pages.products.create', compact('categories',));
     }
     public function edit(string $id)
     {
@@ -101,8 +100,8 @@ class ProductController extends Controller
                 'description' => $validate['description'],
                 'photo_product' => null,
                 'price' => $validate['price'],
-                'quantity' => $validate['price'],
-                'status' => $validate['price'],
+                'quantity' => $validate['quantity'],
+                'status' => $validate['status'],
             ]);
 
             return redirect()->route('products.index')

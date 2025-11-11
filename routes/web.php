@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\{UserController, RoleController, CategoriesController, ProductController};
+use App\Http\Controllers\TransactionController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -26,4 +27,8 @@ Route::prefix("dashboard")->group(function () {
     Route::get('/products/search', [ProductController::class, 'search'])->name('products.search');
     Route::post('/products/destroys', [ProductController::class, 'destroys'])->name('products.destroys');
     Route::resource("products", ProductController::class);
+
+    Route::get('/order', [TransactionController::class, 'create'])->name('order');
+    Route::post('/order-detail', [TransactionController::class, 'index'])->name('order-detail');
 });
+
