@@ -63,8 +63,8 @@
                 <h2 class="font-bold text-indigo-400 text-xl">Transaction</h2>
                 <div class="flex flex-col pl-2 gap-2">
                     <x-current-url :links="[
-                        ['/dashboard/order', 'Create Order', 'bi-journal-plus'],
-                        ['/dashboard/order-details', 'Order Details', 'bi-journal'],
+                        ['/dashboard/transaction/create', 'Create Transaction', 'bi-journal-plus'],
+                        ['/dashboard/transaction', 'Transaction History', 'bi-journal'],
                         ['/dashboard/logging', 'Logging', 'bi-journal-text'],
                     ]" />
                 </div>

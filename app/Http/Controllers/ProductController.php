@@ -37,9 +37,7 @@ class ProductController extends Controller
                     ->where('name', 'like', '%' . $q . '%')
                     ->orWhere('description', 'like', '%' . $q . '%')
                     ->orWhere('price', 'like', '%' . $q . '%')
-                    ->orWhere('category_id', 'like', '%' . $q . '%')
-                    ->orWhere('quantity', 'like', '%' . $q . '%')
-                    ->orWhere('created_at', 'like', '%' . $q . '%');
+                    ->orWhere('category_id', 'like', '%' . $q . '%');
             });
         }
 
@@ -58,14 +56,14 @@ class ProductController extends Controller
             'price' => 'required|integer',
             'quantity' => 'nullable|integer',
         ]);
-
-        // 'photo_product' => 'nullable|string|unique:products,photo_product',
+        
+        // 'photo_product' => ['nullable', 'image:jpg,png','size:400'],
         try {
             Product::create([
                 'name' => $validate['name'],
                 'categories_id' => $validate['categories_id'],
                 'description' => $validate['description'],
-                'photo_product' => null,
+                'photo_product' => $validate['photo_product'],
                 'price' => $validate['price'],
                 'quantity' => 0,
                 'status' => 1,

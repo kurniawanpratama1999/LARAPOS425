@@ -2,7 +2,7 @@
 @section('title', 'Products | Larapos 425')
 @section('content')
     <div class="flex flex-col items-center p-3">
-        <div class="max-w-lg">
+        <div class="max-w-sm">
             @if (isset($datas))
                 <x-alert title="information" type="info">
                     Pastikan kamu mengeditnya dengan benar.
@@ -38,6 +38,13 @@
                 @if (isset($datas))
                     @method('PUT')
                 @endif
+                <label for="photo_product"
+                    class="group relative mb-10 aspect-square bg-neutral-300 overflow-hidden flex items-center justify-center rounded cursor-pointer">
+                    <i id="dummy-image"
+                        class="bi bi-camera-fill block text-7xl text-neutral-400 group-hover:text-neutral-500"></i>
+                    <img id="img-has-upload" class="hidden w-full h-full object-cover absolute top-0 left-0">
+                    <input type="file" name="photo_product" id="photo_product" class="hidden">
+                </label>
                 <x-form.input required label="Name" id="name" type="text" :model="$datas ?? null" autofocus />
                 <x-form.select required label="Category Name" id="categories_id" :datas="$categories" :value="$datas?->categories_id ?? ''" />
                 <x-form.input required label="Description" id="description" type="text" :model="$datas ?? null" autofocus />
@@ -67,3 +74,21 @@
         </div>
     </div>
 @endsection
+
+@pushOnce('scripts')
+    <script>
+        const getPhotoProduct = document.getElementById("photo_product");
+
+        getPhotoProduct.addEventListener("change", (e) => {
+            const [file] = e.target.files;
+
+            if (file) {
+                const imagePreview = document.getElementById('img-has-upload');
+                const dummyImage = document.getElementById('dummy-image');
+                imagePreview.src = URL.createObjectURL(file);
+                dummyImage.classList.replace('block', 'hidden')
+                imagePreview.classList.replace('hidden', 'block')
+            }
+        })
+    </script>
+@endPushOnce

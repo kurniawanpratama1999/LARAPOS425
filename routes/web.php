@@ -28,7 +28,10 @@ Route::prefix("dashboard")->group(function () {
     Route::post('/products/destroys', [ProductController::class, 'destroys'])->name('products.destroys');
     Route::resource("products", ProductController::class);
 
-    Route::get('/order', [TransactionController::class, 'create'])->name('order');
-    Route::post('/order-detail', [TransactionController::class, 'index'])->name('order-detail');
+    Route::get('/transaction', [TransactionController::class, 'index'])->name('transaction');
+    Route::get('/transaction/create', [TransactionController::class, 'create'])->name('transaction.create');
+
+    Route::get('/transaction/search', [TransactionController::class, 'search'])->name('transaction.search');
+    Route::get('/transaction/detail', [TransactionController::class, 'showDetail'])->name('transaction.detail');
 });
 

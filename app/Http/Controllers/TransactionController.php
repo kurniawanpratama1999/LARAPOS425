@@ -12,50 +12,37 @@ class TransactionController extends Controller
 {
     public function index()
     {
-        $datas = Order::with('orderDetails.product.categories' )->get();
+        $datas = Order::with('orderDetails.product' )->get();
         return view('pages.transactions.index', compact('datas',));
     }
 
     public function create()
     {
         $product = Product::with('categories')->get();
-        return view('pages.transactions.create', compact('product'));
+        $orders = Order::whereDate('created_at', now()->toDateString())->get();
+        $today = date_format(now(), 'Ymd');
+        $id = $orders->count() + 1;
+        $runningID = "ORD" . $today . str_pad($id, 5, '0', STR_PAD_LEFT);
+        return view('pages.transactions.create', compact('product', 'orders', 'runningID'));
     }
 
     public function search(Request $request)
     {
         $q = request()->query('q');
 
-        $datas = Order::with('orderDetails.product.categories');
+        $datas = Order::with('orderDetails.product');
         if ($q != '') {
-            $datas = Order::with('orderDetails.product.categories')
-                ->when($q != '', function ($query) use ($q) {
-                    $query->where(function ($qMain) use ($q) {
-                        $qMain
+            $datas->where(function ($query) use ($q) {
+                        $query
                             ->where('code', 'like', "%{$q}%")
-                            ->orWhere('payment', 'like', "%{$q}%")
-                            ->orWhere('payment_tool', 'like', "%{$q}%")
-                            // cari di tabel produk
-                            ->orWhereHas('orderDetails.product', function ($p) use ($q) {
-                                $p->where(function ($inner) use ($q) {
-                                    $inner->where('name', 'like', "%{$q}%")
-                                        ->orWhere('description', 'like', "%{$q}%")
-                                        ->orWhere('price', 'like', "%{$q}%");
-                                });
-                            })
-                            // cari juga di tabel kategori produk
-                            ->orWhereHas('orderDetails.product.categories', function ($c) use ($q) {
-                                $c->where('name', 'like', "%{$q}%");
-                            });
+                            ->orWhere('payment', 'like', "%{$q}%");
                     });
-                })
-                ->get();
-
         }
 
         $datas = $datas->get();
-
-        $html = view('partials.OrderDetailsTableBody', compact('datas', 'q'))->render();
+        logger()->info($q);
+        logger()->info($datas);
+        $html = view('partials.OrdersTableBody', compact('datas', 'q'))->render();
 
         return response()->json(['html' => $html]);
     }
@@ -103,8 +90,9 @@ class TransactionController extends Controller
                     OrderDetail::create([
                         'order_id' => $order->id,
                         'product_id' => $detail['product_id'],
-                        'subtotal' => $detail['subtotal'],
+                        'price' => $detail['price'],
                         'quantity' => $detail['quantity'],
+                        'subtotal' => $detail['subtotal'],
                         'tax' => $detail['tax'],
                         'discount' => $detail['discount'] ?? 0,
                         'total' => $detail['total'],
@@ -124,6 +112,27 @@ class TransactionController extends Controller
                 'message' => 'Terjadi kesalahan saat menyimpan order',
                 'error' => $th->getMessage(),
             ], 500);
+        }
+    }
+    public function showDetail (Request $request) {
+        try {
+            $id = $request->query("id");
+            $datas = OrderDetail::with('product')
+            ->where('order_id', '=', $id)->get();
+
+            logger()->info($datas);
+
+            $html = view('partials.OrderDetailsTableBody', compact('datas'))->render();
+
+            return response()->json([
+                'success' => true,
+                'html' => $html
+            ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'success' => false,
+                'message' => "gagal mendapatkan order detail"
+            ]);
         }
     }
 }

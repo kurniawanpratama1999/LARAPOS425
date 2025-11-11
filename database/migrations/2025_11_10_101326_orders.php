@@ -20,7 +20,7 @@ return new class extends Migration
 
             $table->string('code')->unique();
             $table->enum('payment', ['CASH', 'DEBIT','CREDIT', 'QRIS']);
-            $table->enum('payment_tool',['ATM', 'EDC']);
+            $table->enum('payment_tool',['ATM', 'EDC'])->nullable();
             $table->enum('payment_detail', ['BRI', 'MANDIRI', 'BNI', 'BCA', 'BSI', 'CIMB NIAGA', 'Lainnya'])->nullable();
             $table->integer('quantities');
             $table->decimal('subtotal', 10,2);
