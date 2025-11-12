@@ -6,6 +6,7 @@ use App\Models\Categories;
 use App\Models\Product;
 use Hash;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -52,18 +53,23 @@ class ProductController extends Controller
         $validate = $request->validate([
             'name' => 'required|string|max:255',
             'categories_id' => 'required|integer|exists:categories,id',
+            'photo_product' => 'required|image|mimes:jpg,jpeg,png|max:1000',
             'description' => 'nullable|string',
             'price' => 'required|integer',
             'quantity' => 'nullable|integer',
         ]);
-        
-        // 'photo_product' => ['nullable', 'image:jpg,png','size:400'],
+
+        if ($request->hasFile('photo_product')) {
+            $photoPath = $request->file('photo_product')->store('products', 'public');
+        }
+
+
         try {
             Product::create([
                 'name' => $validate['name'],
                 'categories_id' => $validate['categories_id'],
                 'description' => $validate['description'],
-                'photo_product' => $validate['photo_product'],
+                'photo_product' => $photoPath,
                 'price' => $validate['price'],
                 'quantity' => 0,
                 'status' => 1,
@@ -86,21 +92,29 @@ class ProductController extends Controller
             $validate = $request->validate([
                 'name' => 'required|string|max:255',
                 'categories_id' => 'required|integer|exists:categories,id',
+                'photo_product' => 'nullable|image|mimes:jpg,jpeg,png|max:1000',
                 'description' => 'nullable|string',
                 'price' => 'required|integer',
                 'quantity' => 'nullable|integer',
                 'status' => 'required|integer',
             ]);
 
-            Product::where('id', $id)->update([
-                'name' => $validate['name'],
-                'categories_id' => $validate['categories_id'],
-                'description' => $validate['description'],
-                'photo_product' => null,
-                'price' => $validate['price'],
-                'quantity' => $validate['quantity'],
-                'status' => $validate['status'],
-            ]);
+            $product = Product::findOrFail($id);
+
+            if ($request->hasFile('photo_product')) {
+                // hapus file lama (jika ada)
+                if ($product->photo_product && Storage::disk('public')->exists($product->photo_product)) {
+                    Storage::disk('public')->delete($product->photo_product);
+                }
+
+                // simpan file baru
+                $validate['photo_product'] = $request->file('photo_product')->store('products', 'public');
+            } else {
+                // kalau tidak upload file baru, pertahankan file lama
+                $validate['photo_product'] = $product->photo_product;
+            }
+
+            $product->update($validate);
 
             return redirect()->route('products.index')
                 ->with('floatingAlert', [

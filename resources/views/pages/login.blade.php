@@ -6,7 +6,8 @@
             <h1 class="text-3xl font-bold">LARAPOS 425</h1>
             <h2 class="text-2xl font-bold">Please sign in to your account</h2>
         </div>
-        <form class="form-input flex flex-col items-center gap-5" action="" method="POST">
+        <form class="form-input flex flex-col items-center gap-5" action="{{ route('login.process') }}" method="POST">
+            @csrf
             <label for="email" class="flex flex-col border border-indigo-300 p-2 rounded-md gap-1">
                 <span class="text-sm">Email Address <small>*</small></span>
                 <input type="text" name="email" id="email" class="w-sm border-0 outline-0">
@@ -14,7 +15,7 @@
 
             <label for="password" class="flex flex-col border border-indigo-300 p-2 rounded-md gap-1">
                 <span class="text-sm">Password <small>*</small></span>
-                <input type="text" name="password" id="password" class="w-sm border-0 outline-0">
+                <input type="password" name="password" id="password" class="w-sm border-0 outline-0">
             </label>
 
             <button type="submit" class="bg-indigo-300 py-3 rounded-md px-5 w-full text-white font-bold">Login</button>

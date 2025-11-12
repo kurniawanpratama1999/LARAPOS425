@@ -26,7 +26,24 @@
                     @foreach ($product as $p)
                         <div onclick="addProduct('{{ $p->id }}|{{ $p->name }}|{{ $p->categories->name }}|{{ $p->price }}')"
                             class="bg-neutral-100 p-3 rounded cursor-pointer hover:shadow hover:scale-105 transition-all">
-                            <div class="aspect-square mb-2"></div>
+                            <div class="aspect-square mb-2">
+                                @if ($p->photo_product)
+                                <img src="{{ asset('storage/' . $p->photo_product) }}" class="w-full h-full object-cover">
+                                @else
+                                <div class="text-5xl flex items-center justify-center h-full bg-neutral-300">
+                                    @switch(strtolower($p->categories->name))
+                                        @case("makanan")
+                                            <i class="bi bi-fork-knife"></i>
+                                            @break
+                                        @case("minuman")
+                                            <i class="bi bi-cup-hot-fill"></i>
+                                            @break
+                                        @default
+                                            <i class="bi bi-cup-hot-fill"></i>
+                                    @endswitch
+                                </div>
+                                @endif
+                            </div>
                             <h2>{{ $p->name }}</h2>
                             <p>{{ $p->categories->name }}</p>
                             <p>Rp {{ number_format($p->price, 0, ',', '.') }}</p>
@@ -38,17 +55,22 @@
         <section id="pos" class="w-[500px] bg-neutral-100 flex flex-col">
             <div id="bills" class="font-mono grid grid-rows-[auto_1fr_auto] h-full">
                 <div id="header"
-                    class="p-2 grid grid-cols-[auto_1fr] items-center gap-2 bg-indigo-500 text-white text-sm h-20 font-bold">
-                    <div>
-                        <p>User</p>
-                        <p>Date</p>
-                        <p>Order</p>
+                    class="flex flex-row items-center justify-between p-2 bg-indigo-500 text-white text-sm">
+                    <div class="grid grid-cols-[auto_1fr] items-center gap-2 h-20 font-bold">
+                        <div>
+                            <p>User</p>
+                            <p>Date</p>
+                            <p>Order</p>
+                        </div>
+                        <div>
+                            <p>: Kurniawan Pratama</p>
+                            <p>: {{ now()->locale('id')->translatedFormat('l, d F Y') }}</p>
+                            <p>: {{ $runningID }}</p>
+                        </div>
                     </div>
-                    <div>
-                        <p>: Kurniawan Pratama</p>
-                        <p>: {{ now()->locale('id')->translatedFormat('l, d F Y') }}</p>
-                        <p>: {{ $runningID }}</p>
-                    </div>
+                    <a href="/dashboard/transaction" class="text-xl">
+                        History
+                    </a>
                 </div>
                 <div id="result">
                     <table class="w-full">
@@ -76,8 +98,8 @@
                 <div class="grid grid-cols-3 gap-3 text-center text-white font-bold *:outline">
                     <button type="button" onclick="paymentCash()"
                         class="px-3 py-1 rounded bg-emerald-500 outline-emerald-950">CASH</button>
-                    <button type="button" class="px-3 py-1 rounded bg-blue-500 outline-blue-950">DEBIT</button>
-                    <button type="button" class="px-3 py-1 rounded bg-pink-500 outline-pink-950">CREDIT</button>
+                    <button onclick="paymentDebet()" type="button" class="px-3 py-1 rounded bg-blue-500 outline-blue-950">DEBIT</button>
+                    <button onclick="reset()" type="button" class="px-3 py-1 rounded bg-pink-500 outline-pink-950">RESET</button>
                 </div>
             </div>
             <div class="p-2 flex flex-row items-center justify-between bg-indigo-500 text-white text-2xl font-bold">
@@ -106,6 +128,7 @@
 
 
     @pushOnce('scripts')
+    <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ env('MIDTRANS_SERVER_KEY') }}"></script>
         <script>
             const setProducts = {
                 value: []
@@ -306,26 +329,26 @@
                             <div id="calc" class="text-right">
                                 <p id="subtotal2" class="flex flex-row items-center justify-between w-full gap-2">
                                     <span>Rp</span>
-                                    <span>0</span>
-                                </p>
+                                    <span>${numberToNominal(subtotal)}</span>
+                                    </p>
                                 <p id="tax2" class="flex flex-row items-center justify-between w-full gap-2">
-                                    <span>Rp</span>
-                                    <span>0</span>
-                                </p>
+                                        <span>Rp</span>
+                                        <span>${numberToNominal(tax)}</span>
+                                        </p>
                                 <p id="total2" class="flex flex-row items-center justify-between w-full gap-2">
                                     <span>Rp</span>
-                                    <span>0</span>
+                                    <span>${numberToNominal(total)}</span>
                                 </p>
                             </div>
                         </div>
                         <label for="amount" class="w-full flex flex-col gap-1">
                             <span class="text-center">Jumlah uang dibayar</span>
-                            <input name="amount" id="amount" value="0" placeholder="0" class="text-center w-full outline-0 border rounded">    
+                            <input name="amount" id="amount" placeholder="0" class="text-center w-full outline-0 border rounded" focus>
                         </label>
                         <div class="flex items-center justify-center gap-5">
                             <button type="button" onclick="document.getElementById('popup-payment-cash').remove()">Cancel</button>
                             <button onclick="paymentCashDeal()" type="button" class="py-1 px-5 bg-emerald-400 text-white rounded">Pay</button>
-                        </div> 
+                        </div>
                     </div>
                 </div>
                     `
@@ -335,7 +358,6 @@
                 const amountInput = document.getElementById('amount')
 
                 if (amountInput) {
-                    console.log(setProducts.value)
                     const details = setProducts.value.map(v => ({
                         product_id: v.id,
                         price: v.price,
@@ -361,7 +383,7 @@
                         details
                     }
 
-                    const response = await fetch('/dashboard/order/store', {
+                    const response = await fetch('/dashboard/transaction/store', {
                         method: 'POST',
                         headers: {
                             "Content-Type": "application/json",
@@ -372,8 +394,10 @@
                     })
 
                     const result = await response.json();
-
-                    console.log(result)
+                    if (result.success) {
+                        document.getElementById('popup-payment-cash').remove()
+                        document.body.insertAdjacentHTML('afterbegin', result.html)
+                    }
                 }
 
             }
@@ -381,6 +405,25 @@
             const paymentCash = () => {
                 if (setProducts.value.length > 0) {
                     document.body.insertAdjacentHTML('afterbegin', modalPaymentCashHTML())
+                }
+            }
+
+            const reset = () => {
+                setProducts.value = []
+                setSendToFetch.value = []
+                setCalc.value = []
+                setCash.value = []
+                displayCollectingIDonBills()
+            }
+
+            const paymentDebet = async () => {
+                const apiForPaymendDebet = await fetch('/dashboard/transaction/debet')
+                const res = await apiForPaymendDebet.json()
+
+                if (res.success) {
+                    snap.pay(res.snap)
+                } else {
+                    console.log(res.message)
                 }
             }
         </script>

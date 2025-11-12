@@ -70,33 +70,38 @@
                 </div>
             </div>
 
-            <div class="flex flex-col gap-2">
-                <h2 class="font-bold text-indigo-400 text-xl">Master Data</h2>
-                <div class="flex flex-col pl-2 gap-2">
-                    @php
-                        $arrLink = [
-                            ['/dashboard/roles', 'User Roles', 'bi-person-up'],
-                            ['/dashboard/categories', 'Product Categories', 'bi-basket'],
-                            ['/dashboard/users', 'Users Collection', 'bi-people'],
-                        ];
+            @if (auth()->check() && in_array(strtolower(auth()->user()->role?->name), ['admin','administrator']))
+                <div class="flex flex-col gap-2">
+                    <h2 class="font-bold text-indigo-400 text-xl">Master Data</h2>
+                    <div class="flex flex-col pl-2 gap-2">
+                        @php
+                            $arrLink = [
+                                ['/dashboard/roles', 'User Roles', 'bi-person-up'],
+                                ['/dashboard/categories', 'Product Categories', 'bi-basket'],
+                                ['/dashboard/users', 'Users Collection', 'bi-people'],
+                            ];
 
-                        if (\App\Models\Categories::count() > 0) {
-                            $arrLink[] = ['/dashboard/products', 'Products Collection', 'bi-shop'];
-                        }
-                    @endphp
-                    <x-current-url :links="$arrLink" />
+                            if (\App\Models\Categories::count() > 0) {
+                                $arrLink[] = ['/dashboard/products', 'Products Collection', 'bi-shop'];
+                            }
+                        @endphp
+                        <x-current-url :links="$arrLink" />
+                    </div>
                 </div>
-            </div>
+            @endif
         </nav>
 
         <div class="mt-auto p-4 flex flex-col gap-2">
             <a href="#" class="flex flex-row gap-1 items-center">
                 <i class="bi bi-person"></i>
-                <span>Kurniawan Pratama</span>
+                <span>{{ auth()->user()->name }}</span>
             </a>
-            <a href="#" class="flex flex-row gap-1 items-center">
+            <a href="/logout" class="flex flex-row gap-1 items-center">
                 <i class="bi bi-power"></i>
-                <span>Logout</span>
+                <form action="/logout" method="post">
+                    @csrf
+                    <button type="submit">logout</button>
+                </form>
             </a>
         </div>
     </aside>
