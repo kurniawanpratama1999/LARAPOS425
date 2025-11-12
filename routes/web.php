@@ -40,6 +40,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/transaction/search', [TransactionController::class, 'search'])->name('transaction.search');
         Route::get('/transaction/detail', [TransactionController::class, 'showDetail'])->name('transaction.detail');
 
-        Route::get('/transaction/debet', [TransactionController::class, 'debet'])->name('transaction.debet');
+        Route::post('/transaction/debet', [TransactionController::class, 'debet'])->name('transaction.debet');
     });
 });

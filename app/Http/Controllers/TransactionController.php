@@ -143,8 +143,12 @@ class TransactionController extends Controller
         }
     }
 
-    public function debet()
+    public function debet(Request $request)
     {
+        $order_id = $request->code;
+        $gross_amount = $request->total;
+
+        // logger()->info(print_r(['id' => $order_id, 'total', $amount]));
 
         try {
             Config::$serverKey = config('midtrans.serverKey');
@@ -154,8 +158,8 @@ class TransactionController extends Controller
             
             $params = [
                 'transaction_details' => [
-                    'order_id' => rand(),
-                    'gross_amount' => 10000,
+                    'order_id' => $order_id,
+                    'gross_amount' => $gross_amount
                 ]
             ];
 

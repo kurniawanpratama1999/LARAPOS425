@@ -2,6 +2,11 @@
 
 @section('title', 'Create Transaction')
 
+@pushOnce('head-scripts')
+    <script type="text/javascript" src="https://app.sandbox.midtrans.com/snap/snap.js"
+        data-client-key="{{ env('MIDTRANS_SERVER') }}"></script>
+@endPushOnce
+
 @section('content')
     <main class="relative grid grid-cols-[1fr_auto] h-dvh overflow-hidden">
         <section id="information" class="hidden"></section>
@@ -28,20 +33,23 @@
                             class="bg-neutral-100 p-3 rounded cursor-pointer hover:shadow hover:scale-105 transition-all">
                             <div class="aspect-square mb-2">
                                 @if ($p->photo_product)
-                                <img src="{{ asset('storage/' . $p->photo_product) }}" class="w-full h-full object-cover">
+                                    <img src="{{ asset('storage/' . $p->photo_product) }}"
+                                        class="w-full h-full object-cover">
                                 @else
-                                <div class="text-5xl flex items-center justify-center h-full bg-neutral-300">
-                                    @switch(strtolower($p->categories->name))
-                                        @case("makanan")
-                                            <i class="bi bi-fork-knife"></i>
+                                    <div class="text-5xl flex items-center justify-center h-full bg-neutral-300">
+                                        @switch(strtolower($p->categories->name))
+                                            @case('makanan')
+                                                <i class="bi bi-fork-knife"></i>
                                             @break
-                                        @case("minuman")
-                                            <i class="bi bi-cup-hot-fill"></i>
+
+                                            @case('minuman')
+                                                <i class="bi bi-cup-hot-fill"></i>
                                             @break
-                                        @default
-                                            <i class="bi bi-cup-hot-fill"></i>
-                                    @endswitch
-                                </div>
+
+                                            @default
+                                                <i class="bi bi-cup-hot-fill"></i>
+                                        @endswitch
+                                    </div>
                                 @endif
                             </div>
                             <h2>{{ $p->name }}</h2>
@@ -54,8 +62,7 @@
         </section>
         <section id="pos" class="w-[500px] bg-neutral-100 flex flex-col">
             <div id="bills" class="font-mono grid grid-rows-[auto_1fr_auto] h-full">
-                <div id="header"
-                    class="flex flex-row items-center justify-between p-2 bg-indigo-500 text-white text-sm">
+                <div id="header" class="flex flex-row items-center justify-between p-2 bg-indigo-500 text-white text-sm">
                     <div class="grid grid-cols-[auto_1fr] items-center gap-2 h-20 font-bold">
                         <div>
                             <p>User</p>
@@ -65,7 +72,7 @@
                         <div>
                             <p>: Kurniawan Pratama</p>
                             <p>: {{ now()->locale('id')->translatedFormat('l, d F Y') }}</p>
-                            <p>: {{ $runningID }}</p>
+                            <p id="runningID">: {{ $runningID }}</p>
                         </div>
                     </div>
                     <a href="/dashboard/transaction" class="text-xl">
@@ -98,8 +105,10 @@
                 <div class="grid grid-cols-3 gap-3 text-center text-white font-bold *:outline">
                     <button type="button" onclick="paymentCash()"
                         class="px-3 py-1 rounded bg-emerald-500 outline-emerald-950">CASH</button>
-                    <button onclick="paymentDebet()" type="button" class="px-3 py-1 rounded bg-blue-500 outline-blue-950">DEBIT</button>
-                    <button onclick="reset()" type="button" class="px-3 py-1 rounded bg-pink-500 outline-pink-950">RESET</button>
+                    <button onclick="paymentDebet()" type="button"
+                        class="px-3 py-1 rounded bg-blue-500 outline-blue-950">DEBIT</button>
+                    <button onclick="reset()" type="button"
+                        class="px-3 py-1 rounded bg-pink-500 outline-pink-950">RESET</button>
                 </div>
             </div>
             <div class="p-2 flex flex-row items-center justify-between bg-indigo-500 text-white text-2xl font-bold">
@@ -128,7 +137,6 @@
 
 
     @pushOnce('scripts')
-    <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ env('MIDTRANS_SERVER_KEY') }}"></script>
         <script>
             const setProducts = {
                 value: []
@@ -354,52 +362,60 @@
                     `
             }
 
+            const createDataForSendToDatabase = (amount = 0, payment, payment_tool) => {
+                const details = setProducts.value.map(v => ({
+                    product_id: v.id,
+                    price: v.price,
+                    quantity: v.qty,
+                    subtotal: v.subtotal,
+                    tax: v.tax,
+                    discount: 0,
+                    total: v.total
+                }))
+
+                return {
+                    user_id: 1,
+                    amount: amount,
+                    code: document.getElementById('runningID').innerHTML,
+                    payment: payment,
+                    payment_tool: payment_tool,
+                    payment_detail: null,
+                    quantities: setProducts.value.reduce((a, b) => a + b.qty, 0),
+                    subtotal: setCalc.value.subtotal,
+                    tax: setCalc.value.tax,
+                    discount: 0,
+                    total: setCalc.value.total,
+                    details
+                }
+
+            }
+
+            const API_PAYMENT_DEAL = async (data) => {
+
+                const response = await fetch('/dashboard/transaction/store', {
+                    method: 'POST',
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": document.querySelector('meta[name=csrf-token]').getAttribute(
+                            'content')
+                    },
+                    body: JSON.stringify(data)
+                })
+
+                console.log(await response.json)
+                return await response.json();
+            }
+
             const paymentCashDeal = async () => {
                 const amountInput = document.getElementById('amount')
-
                 if (amountInput) {
-                    const details = setProducts.value.map(v => ({
-                        product_id: v.id,
-                        price: v.price,
-                        quantity: v.qty,
-                        subtotal: v.subtotal,
-                        tax: v.tax,
-                        discount: 0,
-                        total: v.total,
-                    }))
-
-                    setSendToFetch.value = {
-                        user_id: 1,
-                        amount: parseInt(amountInput.value),
-                        code: "{{ $runningID }}",
-                        payment: "cash",
-                        payment_tool: null,
-                        payment_detail: null,
-                        quantities: setProducts.value.reduce((a, b) => a + b.qty, 0),
-                        subtotal: setCalc.value.subtotal,
-                        tax: setCalc.value.tax,
-                        discount: 0,
-                        total: setCalc.value.total,
-                        details
-                    }
-
-                    const response = await fetch('/dashboard/transaction/store', {
-                        method: 'POST',
-                        headers: {
-                            "Content-Type": "application/json",
-                            "X-CSRF-TOKEN": document.querySelector('meta[name=csrf-token]').getAttribute(
-                                'content'),
-                        },
-                        body: JSON.stringify(setSendToFetch.value)
-                    })
-
-                    const result = await response.json();
+                    const send = createDataForSendToDatabase(amountInput.value, 'cash', null)
+                    const result = await API_PAYMENT_DEAL(send)
                     if (result.success) {
                         document.getElementById('popup-payment-cash').remove()
                         document.body.insertAdjacentHTML('afterbegin', result.html)
                     }
                 }
-
             }
 
             const paymentCash = () => {
@@ -417,13 +433,30 @@
             }
 
             const paymentDebet = async () => {
-                const apiForPaymendDebet = await fetch('/dashboard/transaction/debet')
-                const res = await apiForPaymendDebet.json()
+                try {
+                    const sendToDbase = createDataForSendToDatabase(0, 'debet', null)
+                    const apiForPaymendDebet = await fetch('/dashboard/transaction/debet', {
+                        method: "post",
+                        headers: {
+                            "Content-Type": "application/json",
+                            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').getAttribute(
+                                'content')
+                        },
+                        body: JSON.stringify({
+                            code: sendToDbase.code,
+                            total: sendToDbase.total
+                        })
+                    })
 
-                if (res.success) {
-                    snap.pay(res.snap)
-                } else {
-                    console.log(res.message)
+                    const res = await apiForPaymendDebet.json();
+
+                    if (res.success) {
+                        snap.pay(res.snap)
+                    } else {
+                        console.log(res.message)
+                    }
+                } catch (error) {
+                    console.log(error)
                 }
             }
         </script>

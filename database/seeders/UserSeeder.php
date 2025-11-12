@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Role;
 use App\Models\User;
 use Faker\Factory;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -15,14 +16,25 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        $faker = Factory::create();
-            for ($i=0; $i < 10; $i++) {
-                User::create([
-                    "name" => $faker->name(),
-                    "email" => $faker->unique()->safeEmail(),
-                    'role_id' => 1,
-                    'password' => Hash::make("password"),
-                ]);
-            }
+        // $faker = Factory::create();
+        //     for ($i=0; $i < 10; $i++) {
+            //         User::create([
+            //             "name" => $faker->name(),
+            //             "email" => $faker->unique()->safeEmail(),
+            //             'role_id' => 1,
+            //             'password' => Hash::make("password"),
+            //         ]);
+            //     }
+
+        Role::create([
+            'name' => 'admin'
+        ]);
+
+        User::create([
+            "name" => 'Kurniawan Pratama',
+            "email" => "admin@gmail.com",
+            'role_id' => 1,
+            'password' => Hash::make("admin1234"),
+        ]);
     }
 }
