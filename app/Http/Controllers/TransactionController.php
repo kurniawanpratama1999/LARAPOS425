@@ -8,6 +8,8 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Midtrans\Config;
+use Midtrans\Snap;
+use Midtrans\Transaction;
 
 class TransactionController extends Controller
 {
@@ -148,23 +150,22 @@ class TransactionController extends Controller
         $order_id = $request->code;
         $gross_amount = $request->total;
 
-        // logger()->info(print_r(['id' => $order_id, 'total', $amount]));
-
         try {
             Config::$serverKey = config('midtrans.serverKey');
             Config::$isProduction = config('midtrans.isProduction');
             Config::$isSanitized = config('midtrans.isSanitized');
             Config::$is3ds = config('midtrans.is3ds');
             
+
             $params = [
                 'transaction_details' => [
-                    'order_id' => $order_id,
+                    'order_id' => $order_id . '-' . uniqid(),
                     'gross_amount' => $gross_amount
                 ]
             ];
 
-            $snapToken = \Midtrans\Snap::getSnapToken($params);
-
+            $snapToken = Snap::getSnapToken($params);
+            
             return response()->json([
                 'success' => true,
                 'snap' => $snapToken

@@ -449,9 +449,16 @@
                     })
 
                     const res = await apiForPaymendDebet.json();
-
+                    console.log(res)
                     if (res.success) {
-                        snap.pay(res.snap)
+                        snap.pay(res.snap, {
+                            onError: (r) => {
+                                console.log(r)
+                            },
+                            onPending: (r) => {
+                                console.log(r)
+                            }
+                        })
                     } else {
                         console.log(res.message)
                     }
